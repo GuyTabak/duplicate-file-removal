@@ -22,7 +22,7 @@ class Record:
         return hash_md5.hexdigest()
 
 
-class RecordDictionary:
+class RecordsDictionary:
     def __init__(self):
         self.dict_: Dict[str, List[Record]] = dict()
 
