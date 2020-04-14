@@ -23,8 +23,10 @@ class Scanner:
             return record_dict
 
         for root, dirs, files in walk(base_directory):
-            # noinspection PyUnusedLocal
-            dirs = list(filter(lambda x: x not in Scanner.RESTRICTED_DIRECTORIES, dirs))  # avoid restricted directories
+            # avoid restricted directories
+            for index, dir_ in enumerate(dirs):
+                if dir_ in Scanner.RESTRICTED_DIRECTORIES:
+                    del dirs[index]
 
             for file_ in files:
                 r = FileRecord(path.join(root, file_))
