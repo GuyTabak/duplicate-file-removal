@@ -3,7 +3,7 @@ from hashlib import md5
 from os import path
 
 
-class Record:
+class FileRecord:
     def __init__(self, full_path: str):
         full_path = path.normpath(full_path)
         if not path.isfile(full_path):
@@ -27,9 +27,9 @@ class Record:
 class RecordsDictionary:
     # TODO: Consider using metaclass instead of overriding all the functions.
     def __init__(self):
-        self.dict_: Dict[str, List[Record]] = dict()
+        self.dict_: Dict[str, List[FileRecord]] = dict()
 
-    def add(self, record: Record):
+    def add(self, record: FileRecord):
         self.dict_.setdefault(record.hash_, []).append(record)
 
     def __len__(self):

@@ -1,4 +1,4 @@
-from duplicate_file_removal.file_record import Record, RecordsDictionary
+from duplicate_file_removal.file_record import FileRecord, RecordsDictionary
 
 from pytest import fixture
 
@@ -27,7 +27,7 @@ def temp_file_path(binary_data):
 
 @fixture(scope="module")
 def record(temp_file_path):
-    return Record(temp_file_path)
+    return FileRecord(temp_file_path)
 
 
 def test_record_hash(record, binary_data):

@@ -1,4 +1,5 @@
-from duplicate_file_removal.file_record import Record, RecordsDictionary
+from duplicate_file_removal.file_record import FileRecord, RecordsDictionary
+
 from os import walk, path
 
 
@@ -22,16 +23,11 @@ class Scanner:
             return record_dict
 
         for root, dirs, files in walk(base_directory):
-            # TODO: Test which is faster
-            # dirs = list(filter(lambda x: x not in Scanner.RESTRICTED_DIRECTORIES, dirs))
-
-            # avoid restricted directories
-            for index, dir_ in enumerate(dirs):
-                if dir_ in Scanner.RESTRICTED_DIRECTORIES:
-                    del dirs[index]
+            # noinspection PyUnusedLocal
+            dirs = list(filter(lambda x: x not in Scanner.RESTRICTED_DIRECTORIES, dirs))  # avoid restricted directories
 
             for file_ in files:
-                r = Record(path.join(root, file_))
+                r = FileRecord(path.join(root, file_))
                 record_dict.add(r)
 
         return record_dict
