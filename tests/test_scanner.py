@@ -33,18 +33,26 @@ def random_dir_and_files() -> Tuple[int, str]:
             temp_ele.cleanup()
 
 
-def test_scan_and_generate_records_1(random_dir_and_files):
+@fixture(scope="module")
+def scanner():
+    # Temporary Files\Directories are created in the 'AppData' path which is restricted in the code
+    Scanner.RESTRICTED_DIRECTORIES.remove("AppData")
+    yield Scanner
+    Scanner.RESTRICTED_DIRECTORIES.append("AppData")
+
+
+def test_scan_and_generate_records_1(random_dir_and_files, scanner):
     num_of_files, dir_ = random_dir_and_files
-    records_dict = Scanner.scan_and_generate_records(dir_)
+    records_dict = scanner.scan_and_generate_records(dir_)
 
     assert len(records_dict) == num_of_files
 
 
 @fixture(scope='module')
-def restricted_dir_and_files(random_dir_and_files):
+def restricted_dir_and_files(random_dir_and_files, scanner):
     _, dir_ = random_dir_and_files
 
-    temp_dir_path = path.join(dir_, choice(Scanner.RESTRICTED_DIRECTORIES))
+    temp_dir_path = path.join(dir_, choice(scanner.RESTRICTED_DIRECTORIES))
     mkdir(temp_dir_path)
     NamedTemporaryFile(dir=temp_dir_path, delete=False)
 

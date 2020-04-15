@@ -21,11 +21,11 @@ class FileRecord:
         with open(file_name, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
+
         return hash_md5.hexdigest()
 
 
 class RecordsDictionary:
-    # TODO: Consider using metaclass instead of overriding all the functions.
     def __init__(self):
         self.dict_: Dict[str, List[FileRecord]] = dict()
 
