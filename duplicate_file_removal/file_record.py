@@ -15,6 +15,10 @@ class FileRecord:
         self.full_path = full_path
         self.hash_ = self.md5_file(full_path)
 
+    def delete_record(self):
+        # TODO: Complete
+        pass
+
     @staticmethod
     def md5_file(file_name):
         hash_md5 = md5()
@@ -37,3 +41,6 @@ class RecordsDictionary:
 
     def __getitem__(self, item):
         return self.dict_[item]
+
+    def items(self):
+        return self.__dict__.items()
