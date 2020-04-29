@@ -11,7 +11,7 @@ logger.addHandler(handler_)
 
 # Results logger
 res_logger = getLogger('results_logger')
-logger.setLevel(INFO)
+res_logger.setLevel(INFO)
 res_handler = FileHandler('..\\Logs\\res_log_file.txt')
 res_handler.setLevel(INFO)
 res_logger.addHandler(res_handler)

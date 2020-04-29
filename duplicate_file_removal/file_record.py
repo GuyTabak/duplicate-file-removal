@@ -1,10 +1,12 @@
 from typing import Dict, List
 from hashlib import md5
 from enum import Enum
-from os import path
+from os import path, remove
+
 
 class RecordStatus(Enum):
     deleted, exists= range(2)
+
 
 class FileRecord:
     def __init__(self, full_path: str):
@@ -20,9 +22,8 @@ class FileRecord:
         self.status = RecordStatus.exists
 
     def delete_record(self):
-        # TODO: Complete, Test
         self.status = RecordStatus.deleted
-        pass
+        remove(self.full_path)
 
     @staticmethod
     def md5_file(file_name):
@@ -35,6 +36,7 @@ class FileRecord:
 
 
 class RecordsDictionary:
+    # TODO: metaclass
     def __init__(self):
         self.dict_: Dict[str, List[FileRecord]] = dict()
 
@@ -48,4 +50,7 @@ class RecordsDictionary:
         return self.dict_[item]
 
     def items(self):
-        return self.__dict__.items()
+        return self.dict_.items()
+
+    def values(self):
+        return self.dict_.values()

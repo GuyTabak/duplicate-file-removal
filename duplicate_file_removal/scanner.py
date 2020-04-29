@@ -37,7 +37,6 @@ class Scanner:
                     logger.info(f"Failed to scan file:\n{e}")
         return records
 
-
     @classmethod
     def add_if_not_present(cls, record: FileRecord, records: RecordsDictionary):
         for r in records.dict_.setdefault(record.hash_, []):

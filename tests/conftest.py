@@ -1,7 +1,8 @@
 from duplicate_file_removal.scanner import Scanner
 
-from pytest import fixture
+from os import urandom
 
+from pytest import fixture
 
 
 @fixture(scope="module")
@@ -10,3 +11,16 @@ def scanner():
     Scanner.RESTRICTED_DIRECTORIES.remove("AppData")
     yield Scanner
     Scanner.RESTRICTED_DIRECTORIES.append("AppData")
+
+
+@fixture(scope="module")
+def binary_data():
+    return urandom(4097)
+
+
+def ignore_exceptions(func: callable):
+    # noinspection PyBroadException
+    try:
+        func()
+    except Exception:
+        pass
