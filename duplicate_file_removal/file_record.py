@@ -1,7 +1,10 @@
 from typing import Dict, List
 from hashlib import md5
+from enum import Enum
 from os import path
 
+class RecordStatus(Enum):
+    deleted, exists= range(2)
 
 class FileRecord:
     def __init__(self, full_path: str):
@@ -14,9 +17,11 @@ class FileRecord:
         self.dir = path.dirname(full_path)
         self.full_path = full_path
         self.hash_ = self.md5_file(full_path)
+        self.status = RecordStatus.exists
 
     def delete_record(self):
-        # TODO: Complete
+        # TODO: Complete, Test
+        self.status = RecordStatus.deleted
         pass
 
     @staticmethod

@@ -7,7 +7,7 @@ from os import walk, path
 class Scanner:
     RESTRICTED_DIRECTORIES = ["Program Files", "Program Files (x86)", "Windows", "$Recycle.Bin", "AppData",
                               "ProgramData"]
-    RESTRICTED_FILE_EXT = [".sys"]
+    RESTRICTED_FILE_EXT = [".sys", ".dll", ".obj"]
 
     @classmethod
     def scan_and_generate_records(cls, root_directory: str, records: RecordsDictionary = None) -> RecordsDictionary:

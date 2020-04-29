@@ -1,5 +1,5 @@
 from duplicate_file_removal.file_record import FileRecord, RecordsDictionary
-from duplicate_file_removal.logger import logger
+from duplicate_file_removal.logger import res_logger
 
 from typing import List, Tuple
 from os import path
@@ -8,7 +8,7 @@ from os import path
 # TODO: Tests
 class RecordsProcessor:
     @staticmethod
-    def remove_duplicates(*priority: str, records: RecordsDictionary) -> None:
+    def remove_duplicates(records: RecordsDictionary, *priority: str) -> None:
         """
 
         :param priority: Duplicate records from @records will be removed according to this variable, descending order.
@@ -17,17 +17,17 @@ class RecordsProcessor:
                         @priority.
         :return:
         """
-
+        priority = map(lambda x: path.normpath(x), priority)
         for path_ in priority:
             if not path.isabs(path_):
-                raise RuntimeError("Priority path is not absolute")
-        priority = map(lambda x:  path.abspath(x), priority)  # TODO: This will probably fail
+                raise RuntimeError(f"Priority path is not absolute: {path_}")
 
-        for record in filter(lambda x: len(x) > 1, records.items()):
-            RecordsProcessor.remove_duplicate_normalized(record, *priority)
+
+        for file_records in records.items():
+            RecordsProcessor._remove_duplicate_normalized(file_records, *priority)
 
     @classmethod
-    def remove_duplicate_normalized(cls, records: List[FileRecord], *priority) -> None:
+    def _remove_duplicate_normalized(cls, records: List[FileRecord], *priority) -> None:
         """
         This function is doing some smart decisions of which duplicate to delete:
         If priority_path_a is included in priority_path_b, but priority_path_b is ranked higher,
@@ -36,6 +36,8 @@ class RecordsProcessor:
         :param priority:
         :return:
         """
+        if not len(records)>1:
+            return
         candidates: List[Tuple[str, FileRecord]] = []
 
         for path_ in priority:
@@ -46,20 +48,27 @@ class RecordsProcessor:
         if len(candidates) == 0:  # TODO: Think this through
             record_to_keep = records[0]
         else:
-            _, record_to_keep = cls.highest_specificity(candidates)
+            _, record_to_keep = cls._highest_specificity(candidates)
 
+        # TODO: add verification that 'record_to_keep' is not corrupted
         cls.delete_records(record_to_keep, records)
 
     @classmethod
-    def highest_specificity(cls, candidates: List[Tuple[str, FileRecord]]) -> Tuple[str, FileRecord]:
-        highest_priority = candidates[0]
-        for candidate in candidates[1:]:
-            if candidate[0].startswith(highest_priority):
-                highest_priority = candidate[0]
+    def _highest_specificity(cls, candidates_desc: List[Tuple[str, FileRecord]]) -> Tuple[str, FileRecord]:
+        """
+        See 'remove_duplicate_normalized' for reasoning.
+        :param candidates_desc: List of candidates(to avoid deletion), in descending priority
+        :return: The FileRecord with highest specificity
+        """
+        priority_path_index = 0
+        highest_priority = candidates_desc[0]  # First element has highest priority
+        for candidate in candidates_desc[1:]:
+            if candidate[priority_path_index].startswith(highest_priority):
+                highest_priority = candidate[priority_path_index]
         return highest_priority
 
     @staticmethod
     def delete_records(avoid_deletion: FileRecord, records: List[FileRecord]):
         for record in filter(lambda x: x is not avoid_deletion, records):
-            logger.info(f"Duplicate file was deleted: {record.full_path}")  # TODO: Move to a different log file
+            res_logger.info(f"Duplicate file was deleted: {record.full_path}")
             record.delete_record()
