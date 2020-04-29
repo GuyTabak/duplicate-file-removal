@@ -32,11 +32,20 @@ class Scanner:
                 if not cls.is_valid_file(file_path):
                     continue
                 try:
-                    r = FileRecord(file_path)
-                    records.add(r)
+                    cls.add_if_not_present(FileRecord(file_path), records)
                 except (PermissionError, OSError) as e:
                     logger.info(f"Failed to scan file:\n{e}")
         return records
+
+
+    @classmethod
+    def add_if_not_present(cls, record: FileRecord, records: RecordsDictionary):
+        for r in records.dict_.setdefault(record.hash_, []):
+            if r.full_path == record.full_path:
+                break
+        else:
+            # didn't find record with same path
+            records.add(record)
 
     @classmethod
     def scan_multiple_paths(cls, *paths: str, records: RecordsDictionary = None) -> RecordsDictionary:
