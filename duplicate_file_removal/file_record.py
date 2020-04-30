@@ -1,7 +1,6 @@
-from typing import Dict, List
+from os import path, remove
 from hashlib import md5
 from enum import Enum
-from os import path, remove
 
 
 class RecordStatus(Enum):
@@ -35,22 +34,6 @@ class FileRecord:
         return hash_md5.hexdigest()
 
 
-class RecordsDictionary:
-    # TODO: metaclass
-    def __init__(self):
-        self.dict_: Dict[str, List[FileRecord]] = dict()
-
+class RecordsDictionary(dict):
     def add(self, record: FileRecord):
-        self.dict_.setdefault(record.hash_, []).append(record)
-
-    def __len__(self):
-        return len(self.dict_)
-
-    def __getitem__(self, item):
-        return self.dict_[item]
-
-    def items(self):
-        return self.dict_.items()
-
-    def values(self):
-        return self.dict_.values()
+        self.setdefault(record.hash_, []).append(record)
