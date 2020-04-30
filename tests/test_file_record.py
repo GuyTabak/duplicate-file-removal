@@ -29,10 +29,6 @@ def test_record_hash(record, binary_data):
     assert record.hash_ == md5(binary_data).hexdigest()
 
 
-def test_record_file_path_deconstruction(record):
-    assert record.full_path == path.join(record.dir, record.name + record.ext)
-
-
 def test_dup_record_in_record_dictionary(record):
     d = RecordsDictionary()
     d.add(record)
