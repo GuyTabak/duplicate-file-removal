@@ -39,8 +39,8 @@ class Scanner:
 
     @classmethod
     def add_if_not_present(cls, record: FileRecord, records: RecordsDictionary):
-        for r in records.setdefault(record.hash_, []):
-            if r.full_path == record.full_path:
+        for r in records.setdefault(record.hash, []):
+            if r.full_path == record.file_path:
                 break
         else:
             # didn't find record with same path

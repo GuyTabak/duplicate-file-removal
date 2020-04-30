@@ -38,7 +38,7 @@ class RecordsProcessor:
 
         for path_ in priority:
             for record in records:
-                if record.full_path.startswith(path_):
+                if record.file_path.startswith(path_):
                     candidates.append((path_, record))  # Sorted by priority
 
         if len(candidates) == 0:  # TODO: Think this through
@@ -68,5 +68,5 @@ class RecordsProcessor:
     @classmethod
     def delete_records(cls, avoid_deletion: FileRecord, records: List[FileRecord]):
         for record in filter(lambda x: x is not avoid_deletion, records):
-            res_logger.info(f"Duplicate file was deleted: {record.full_path}")
+            res_logger.info(f"Duplicate file was deleted: {record.file_path}")
             record.delete_record()

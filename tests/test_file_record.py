@@ -26,7 +26,7 @@ def record(temp_file_path):
 
 
 def test_record_hash(record, binary_data):
-    assert record.hash_ == md5(binary_data).hexdigest()
+    assert record.hash == md5(binary_data).hexdigest()
 
 
 def test_dup_record_in_record_dictionary(record):
@@ -35,4 +35,4 @@ def test_dup_record_in_record_dictionary(record):
     d.add(record)
 
     assert len(d) == 1
-    assert len(d[record.hash_]) == 2
+    assert len(d[record.hash]) == 2
