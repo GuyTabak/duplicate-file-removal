@@ -6,23 +6,47 @@ from os import path
 
 
 class RecordsProcessor:
-    @staticmethod
-    def remove_duplicates(records: RecordsDictionary, *priority: str) -> None:
+    @classmethod
+    def remove_duplicates(cls, records: List[FileRecord], *priority: str) -> None:
         """
-
-        :param priority: Duplicate records from @records will be removed according to this variable, descending order.
-                        Each priority path has to be absolute.
         :param records: result of the scanner module, duplicate files will be removed and saved according to the
                         @priority.
+        :param priority: Duplicate FileRecord(@records) will be removed according to this variable, descending order.
+                        Each priority path has to be absolute.
         :return:
         """
         priority = map(lambda x: path.normpath(x), priority)
-        for path_ in priority:
-            if not path.isabs(path_):
-                raise RuntimeError(f"Priority path is not absolute: {path_}")
+        bad_paths = [path_ for path_ in filter(lambda x: not path.isabs(x), priority)]
+        if bad_paths:
+            raise RuntimeError(f"Following paths are not absolute: {bad_paths}")
 
-        for file_records in records.values():
-            RecordsProcessor._remove_duplicate_normalized(file_records, *priority)
+        records_by_size = cls.group_by_size(records)
+        cls.filter_unique(records_by_size)  # Remove any record which is unique
+        records_by_hash = cls.records_by_size_to_by_hash(records_by_size)
+
+        for _, val in records_by_hash.items():
+            RecordsProcessor._remove_duplicate_normalized(val, *priority)
+
+    @classmethod
+    def group_by_size(cls, records: List[FileRecord]) -> RecordsDictionary:
+        res = RecordsDictionary(hash_by="size")
+        for record in records:
+            res.add(record)
+        return res
+
+    @classmethod
+    def filter_unique(cls, records: RecordsDictionary) -> None:
+        for key in records:
+            if len(records[key]) == 1:
+                records.pop(key)
+
+    @classmethod
+    def records_by_size_to_by_hash(cls, records: RecordsDictionary):
+        res = RecordsDictionary()
+        for key, val in records:
+            for record in val:
+                res.add(record)
+        return res
 
     @classmethod
     def _remove_duplicate_normalized(cls, records: List[FileRecord], *priority) -> None:
@@ -70,3 +94,6 @@ class RecordsProcessor:
         for record in filter(lambda x: x is not avoid_deletion, records):
             res_logger.info(f"Duplicate file was deleted: {record.file_path}")
             record.delete_record()
+
+
+

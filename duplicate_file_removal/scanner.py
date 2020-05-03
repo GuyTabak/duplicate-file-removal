@@ -1,7 +1,8 @@
-from duplicate_file_removal.file_record import FileRecord, RecordsDictionary
+from duplicate_file_removal.file_record import FileRecord
 from duplicate_file_removal.logger import logger
 
 from os import walk, path
+from typing import List, Tuple
 
 
 class Scanner:
@@ -9,20 +10,22 @@ class Scanner:
                               "ProgramData"]
     RESTRICTED_FILE_EXT = [".sys", ".dll", ".obj"]
 
+    # TODO: handle edge cases:
+    #  - permissions( Sys, other users, etc...)
+    #  - different OS
+    #  - network storage
     @classmethod
-    def scan_and_generate_records(cls, root_directory: str, records: RecordsDictionary = None) -> RecordsDictionary:
-        # TODO: handle edge cases:
-        #  - permissions( Sys, other users, etc...)
-        #  - different OS
-        #  - network storage
-
-        if not records:
-            records = RecordsDictionary()
-
-        if not cls.is_valid_root_directory(root_directory):
-            return records
-
-        for root, dirs, files in walk(root_directory):
+    def scan(cls, root_dir: str) -> List[FileRecord]:
+        # TODO features:
+        #  1. Save state (begin from stopping point).
+        #  2. Add API for cloud storage
+        # 3.
+        is_valid, invalid_dir_list = cls.is_valid_root_directory(root_dir)
+        if not is_valid:
+            raise RuntimeError(f"Invalid root directory. Check that the path doesnt contain any of the following:\n"
+                               f"{', '.join(invalid_dir_list)}")
+        res = []
+        for root, dirs, files in walk(root_dir):
             for index, dir_ in enumerate(dirs):  # avoid restricted directories
                 if dir_ in cls.RESTRICTED_DIRECTORIES:
                     del dirs[index]
@@ -32,36 +35,19 @@ class Scanner:
                 if not cls.is_valid_file(file_path):
                     continue
                 try:
-                    cls.add_if_not_present(FileRecord(file_path), records)
+                    res.append(FileRecord(file_path))
                 except (PermissionError, OSError) as e:
                     logger.info(f"Failed to scan file:\n{e}")
-        return records
+        return res
 
     @classmethod
-    def add_if_not_present(cls, record: FileRecord, records: RecordsDictionary):
-        for r in records.setdefault(record.hash, []):
-            if r.full_path == record.file_path:
-                break
-        else:
-            # didn't find record with same path
-            records.add(record)
+    def is_valid_root_directory(cls, dir_) -> Tuple[bool, List[str]]:
+        path_elements = map(str, path.normpath(dir_).split(path.sep))
+        invalids_dirs = []
+        for dir_ in filter(lambda x: x in cls.RESTRICTED_DIRECTORIES, path_elements):
+            invalids_dirs.append(dir_)
 
-    @classmethod
-    def scan_multiple_paths(cls, *paths: str, records: RecordsDictionary = None) -> RecordsDictionary:
-        if not records:
-            records = RecordsDictionary()
-
-        for path_ in paths:
-            cls.scan_and_generate_records(path_, records)
-
-        return records
-
-    @classmethod
-    def is_valid_root_directory(cls, dir_):
-        path_elements = path.normpath(dir_).split(path.sep)
-        if list(filter(lambda ele: ele in Scanner.RESTRICTED_DIRECTORIES, iter(path_elements))):
-            return False
-        return True
+        return (True, []) if not invalids_dirs else (False, invalids_dirs)
 
     @classmethod
     def is_valid_file(cls, file_path):
@@ -77,3 +63,16 @@ class Scanner:
             return False
 
         return True
+
+# except (PermissionError, OSError) as e:
+#
+#
+#     @classmethod
+#     def scan_multiple_paths(cls, *paths: str, records: RecordsDictionary = None) -> RecordsDictionary:
+#         if not records:
+#             records = RecordsDictionary()
+#
+#         for path_ in paths:
+#             cls.scan_and_generate_records(path_, records)
+#
+#         return records

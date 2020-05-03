@@ -17,15 +17,15 @@ class FileRecord:
         self.status = RecordStatus.exists
         _, self.ext = path.splitext(path_)
         self.file_path: str = path_
-        self._hash_cash: Union[str, None] = None
-        self.file_size: int = stat(self.file_path).st_size  # size in bytes
+        self._hash_cache: Union[str, None] = None
+        self.file_size: int = stat(self.file_path).st_size  # size in bytes  # TODO: check performance
 
     @property
     def hash(self):
-        if self._hash_cash:
-            return self._hash_cash
-        self._hash_cash = self.md5_file(self.file_path)
-        return self._hash_cash
+        if self._hash_cache:
+            return self._hash_cache
+        self._hash_cache = self.md5_file(self.file_path)
+        return self._hash_cache
 
     def delete_record(self):
         self.status = RecordStatus.deleted
@@ -42,5 +42,9 @@ class FileRecord:
 
 
 class RecordsDictionary(dict):
+    def __init__(self, hash_by="hash"):
+        super(RecordsDictionary, self).__init__()
+        self.attr = hash_by
+
     def add(self, record: FileRecord):
-        self.setdefault(record.hash, []).append(record)
+        self.setdefault(getattr(record, self.attr), []).append(record)
