@@ -4,7 +4,14 @@ from collections.abc import Iterable
 def ignore_exceptions(func: callable, *args, **kwargs):
     # noinspection PyBroadException
     try:
-        return func(args, kwargs)
+        if args and kwargs:
+            return func(*args, *kwargs)
+        elif args and not kwargs:
+            return func(*args)
+        elif not args and kwargs:
+            return func(*kwargs)
+        else:
+            return func()
     except Exception:
         pass
 
