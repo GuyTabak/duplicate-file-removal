@@ -95,4 +95,4 @@ class RecordsProcessor:
     def delete_records(cls, avoid_deletion: FileRecord, records: List[FileRecord]):
         for record in filter(lambda x: x is not avoid_deletion, records):
             res_logger.info(f"Duplicate file was deleted: {record.file_path}")
-            record.delete_record()
+            record.delete_record(res_logger)

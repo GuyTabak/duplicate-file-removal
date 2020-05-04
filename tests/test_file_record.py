@@ -1,11 +1,11 @@
 from duplicate_file_removal.file_record import FileRecord, RecordsDictionary
 
-from pytest import fixture
-
 from tempfile import TemporaryDirectory
-from os import path
 from hashlib import md5
 from uuid import uuid4
+from os import path
+
+from pytest import fixture
 
 
 @fixture(scope="module")

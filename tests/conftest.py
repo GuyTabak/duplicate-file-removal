@@ -8,8 +8,6 @@ from uuid import uuid4
 
 from pytest import fixture
 
-from tests.utils.util import ignore_exceptions
-
 
 @fixture(scope="module")
 def scanner():
@@ -65,4 +63,3 @@ def gen_files_by_specification() -> callable:
 
         return root_dir
     yield inner_func
-

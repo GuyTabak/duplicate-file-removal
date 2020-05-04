@@ -1,7 +1,8 @@
 from os import path, remove, stat
+from typing import Optional
+from logging import Logger
 from hashlib import md5
 from enum import Enum
-from typing import Union
 
 
 class RecordStatus(Enum):
@@ -17,7 +18,7 @@ class FileRecord:
         self.status = RecordStatus.exists
         _, self.ext = path.splitext(path_)
         self.file_path: str = path_
-        self._hash_cache: Union[str, None] = None
+        self._hash_cache: Optional[str] = None
         self.size: int = stat(self.file_path).st_size  # size in bytes  # TODO: check performance
 
     @property
@@ -27,9 +28,11 @@ class FileRecord:
         self._hash_cache = self.md5_file(self.file_path)
         return self._hash_cache
 
-    def delete_record(self):
+    def delete_record(self, logger: Optional[Logger]):
         self.status = RecordStatus.deleted
         remove(self.file_path)
+        if logger:
+            logger.info(f"File deleted: {self.file_path.encode('utf-8')}")
 
     @staticmethod
     def md5_file(file_name):

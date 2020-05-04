@@ -2,10 +2,10 @@ from duplicate_file_removal.processor import RecordsProcessor
 from duplicate_file_removal.file_record import RecordStatus
 
 from tempfile import TemporaryDirectory
-from pytest import raises
 from os import path
 
 from tests.utils.util import ignore_exceptions, count
+from pytest import raises
 
 
 def test_remove_duplicates():

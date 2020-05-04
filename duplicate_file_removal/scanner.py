@@ -1,8 +1,8 @@
 from duplicate_file_removal.file_record import FileRecord
 from duplicate_file_removal.logger import logger
 
-from os import walk, path
 from typing import List, Tuple
+from os import walk, path
 
 
 class Scanner:
@@ -85,5 +85,3 @@ class Scanner:
             res += cls.scan(path_)
 
         return res
-
-# except (PermissionError, OSError) as e:
