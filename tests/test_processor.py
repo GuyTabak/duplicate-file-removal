@@ -1,16 +1,28 @@
-from duplicate_file_removal.file_record import RecordsDictionary, RecordStatus
 from duplicate_file_removal.processor import RecordsProcessor
+from duplicate_file_removal.file_record import RecordStatus
 
 from tempfile import TemporaryDirectory
 from pytest import raises
 from os import path
 
-from tests.conftest import ignore_exceptions
+from tests.utils.util import ignore_exceptions, count
 
 
 def test_remove_duplicates():
-    with raises(RuntimeError):
-        RecordsProcessor.remove_duplicates(RecordsDictionary(), "..\\SomeFolder")
+    with raises(RuntimeError):  # make sure paths provided have to be absolute
+        RecordsProcessor.remove_duplicates([], "..\\SomeFolder")
+
+
+def test_scanner_results_to_groups(scanner, gen_files_by_specification):
+    num_of_dup_files = 10
+    num_of_unique_files = 5
+
+    base_dir = gen_files_by_specification(num_of_dup_files, num_of_unique_files)
+    res = scanner.scan(base_dir.name)
+    res = RecordsProcessor.scanner_results_to_groups(res)
+    assert len(res) == 6  # 5 occurrences for unique files, and 1 occurrence for the 10 duplicate files
+    assert count(filter(lambda elem: len(elem[1]) == num_of_dup_files, res.items())) == 1
+    assert count((filter(lambda elem: len(elem[1]) == 1, res.items()))) == num_of_unique_files
 
 
 def test_remove_duplicate_normalized(binary_data, scanner):
@@ -28,15 +40,14 @@ def test_remove_duplicate_normalized(binary_data, scanner):
     with open(temp_file_name_2, "wb") as f:
         f.write(binary_data)
 
-    records = scanner.scan_and_generate_records(temp_dir_1.name)
-    dup_list = list(records.values())[0]
-    assert len(dup_list) == 2  # sanity check
+    records = scanner.scan(temp_dir_1.name)
+    assert len(records) == 2  # sanity check
     priority = ["C:\\", temp_dir_2.name]
 
-    RecordsProcessor._remove_duplicate_normalized(dup_list, *priority)
+    RecordsProcessor._remove_duplicate_normalized(records, *priority)
 
-    assert dup_list[0].status == RecordStatus.deleted
-    assert dup_list[1].status == RecordStatus.exists
+    assert records[0].status == RecordStatus.deleted
+    assert records[1].status == RecordStatus.exists
 
     # TemporaryDirectory cleanup warning ignored
     ignore_exceptions(temp_dir_1.cleanup)

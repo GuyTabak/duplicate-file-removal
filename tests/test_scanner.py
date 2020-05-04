@@ -1,19 +1,10 @@
 from duplicate_file_removal.scanner import Scanner
 
-from tempfile import TemporaryDirectory, NamedTemporaryFile
-from random import randrange, choice
+from tempfile import NamedTemporaryFile
 from os import mkdir, path
-from typing import Tuple
-from uuid import uuid4
+from random import choice
 
-from pytest import fixture, raises
-
-
-
-def test_scan(scanner, random_dir_and_files):
-    num_of_files, dir_ = random_dir_and_files
-    res = Scanner.scan(dir_)
-    assert len(res) == num_of_files
+from pytest import fixture
 
 
 @fixture(scope='module')
@@ -28,6 +19,12 @@ def restricted_dir_and_files(random_dir_and_files, scanner):
     yield random_dir_and_files  # The new folder and files are contained in the provided fixture
 
 
+def test_scan(scanner, random_dir_and_files):
+    num_of_files, dir_ = random_dir_and_files
+    res = Scanner.scan(dir_)
+    assert len(res) == num_of_files
+
+
 def test_restricted_scan(restricted_dir_and_files):
     # Make sure that even if root directory of the scan is valid, it doesn't scan or access a
     # restricted folder or file
@@ -37,9 +34,6 @@ def test_restricted_scan(restricted_dir_and_files):
     assert len(res) == num_of_files
 
 
-# TODO: Move to processor
-def test_scan_and_generate_records_1(random_dir_and_files, scanner):
+def test_scan_multiple_paths(random_dir_and_files, scanner):
     num_of_files, dir_ = random_dir_and_files
-    records_dict = scanner.scan_and_generate_records(dir_)
-
-    assert len(records_dict) == num_of_files
+    assert num_of_files * 2 == len(scanner.scan_multiple_paths(dir_, dir_))

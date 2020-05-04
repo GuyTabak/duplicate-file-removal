@@ -20,7 +20,7 @@ class Scanner:
         #  1. Save state (begin from stopping point).
         #  2. Add API for cloud storage
         # 3.
-        is_valid, invalid_dir_list = cls.is_valid_root_directory(root_dir)
+        is_valid, invalid_dir_list = cls.is_valid_root_directory_for_scan(root_dir)
         if not is_valid:
             raise RuntimeError(f"Invalid root directory. Check that the path doesnt contain any of the following:\n"
                                f"{', '.join(invalid_dir_list)}")
@@ -32,7 +32,7 @@ class Scanner:
 
             for file_ in files:
                 file_path = path.join(root, file_)
-                if not cls.is_valid_file(file_path):
+                if not cls.is_valid_file_for_scan(file_path):
                     continue
                 try:
                     res.append(FileRecord(file_path))
@@ -41,7 +41,11 @@ class Scanner:
         return res
 
     @classmethod
-    def is_valid_root_directory(cls, dir_) -> Tuple[bool, List[str]]:
+    def is_valid_root_directory_for_scan(cls, dir_: str) -> Tuple[bool, List[str]]:
+        """
+        :param dir_: dir path
+        :return: (True, []) if valid for scan, else (False, [List of bad component in dir_])
+        """
         path_elements = map(str, path.normpath(dir_).split(path.sep))
         invalids_dirs = []
         for dir_ in filter(lambda x: x in cls.RESTRICTED_DIRECTORIES, path_elements):
@@ -50,10 +54,19 @@ class Scanner:
         return (True, []) if not invalids_dirs else (False, invalids_dirs)
 
     @classmethod
-    def is_valid_file(cls, file_path):
+    def is_valid_file_for_scan(cls, file_path, max_file_size: float = 10):
+        """
+        Determines if a file is valid for scan:
+        1. File has to exist.
+        2. File can't have an any of the class's @cls.RESTRICTED_FILE_EXT extension
+        3. File can't surpass max_file_size
+        :param file_path:
+        :param max_file_size: max size of file allowed, in mega bytes.
+        :return: True if valid else False
+        """
         try:
             # TODO: Remove when NTFS scan is added
-            if path.getsize(file_path) / (1024 * 2) > 10:  # Ignore files larger than 10mb
+            if path.getsize(file_path) / (1024 * 2) > max_file_size:
                 return False
             _, ext = path.splitext(file_path)
             if ext in cls.RESTRICTED_FILE_EXT:
@@ -64,15 +77,13 @@ class Scanner:
 
         return True
 
+    @classmethod
+    def scan_multiple_paths(cls, *paths: str) -> List[FileRecord]:
+        res = []
+
+        for path_ in paths:
+            res += cls.scan(path_)
+
+        return res
+
 # except (PermissionError, OSError) as e:
-#
-#
-#     @classmethod
-#     def scan_multiple_paths(cls, *paths: str, records: RecordsDictionary = None) -> RecordsDictionary:
-#         if not records:
-#             records = RecordsDictionary()
-#
-#         for path_ in paths:
-#             cls.scan_and_generate_records(path_, records)
-#
-#         return records

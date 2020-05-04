@@ -22,14 +22,6 @@ def binary_data():
     return urandom(4097)
 
 
-def ignore_exceptions(func: callable, *args, **kwargs):
-    # noinspection PyBroadException
-    try:
-        return func(args, kwargs)
-    except Exception:
-        pass
-
-
 @fixture(scope="module")
 def random_dir_and_files() -> Tuple[int, str]:
     files_counter = 0
@@ -52,3 +44,22 @@ def random_dir_and_files() -> Tuple[int, str]:
     for temp_ele in reversed(holder):
         if type(temp_ele) == TemporaryDirectory:
             temp_ele.cleanup()
+
+
+@fixture(scope="module")
+def gen_files_by_specification() -> callable:
+    def inner_func(num_of_same_files: int, num_of_unique_files: int) -> TemporaryDirectory:
+        const_data = uuid4().bytes
+        root_dir = TemporaryDirectory()
+
+        # Create duplicate files
+        for file in range(num_of_same_files):
+            with NamedTemporaryFile(dir=root_dir.name, delete=False) as f:
+                f.write(const_data)
+        # Create unique files
+        for file in range(num_of_unique_files):
+            with NamedTemporaryFile(dir=root_dir.name, delete=False) as f:
+                f.write(uuid4().bytes)
+
+        return root_dir
+    yield inner_func

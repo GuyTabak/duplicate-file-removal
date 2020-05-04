@@ -20,12 +20,14 @@ class RecordsProcessor:
         if bad_paths:
             raise RuntimeError(f"Following paths are not absolute: {bad_paths}")
 
-        records_by_size = cls.group_by_size(records)
-        cls.filter_unique(records_by_size)  # Remove any record which is unique
-        records_by_hash = cls.records_by_size_to_by_hash(records_by_size)
-
-        for _, val in records_by_hash.items():
+        for _, val in cls.scanner_results_to_groups(records).items():
             RecordsProcessor._remove_duplicate_normalized(val, *priority)
+
+    @classmethod
+    def scanner_results_to_groups(cls, records: List[FileRecord]) -> RecordsDictionary:
+        records_by_size = cls.group_by_size(records)
+        cls.remove_unique(records_by_size)  # Remove any record which is unique
+        return cls.records_by_size_to_by_hash(records_by_size)
 
     @classmethod
     def group_by_size(cls, records: List[FileRecord]) -> RecordsDictionary:
@@ -35,7 +37,7 @@ class RecordsProcessor:
         return res
 
     @classmethod
-    def filter_unique(cls, records: RecordsDictionary) -> None:
+    def remove_unique(cls, records: RecordsDictionary) -> None:
         for key in records:
             if len(records[key]) == 1:
                 records.pop(key)
@@ -43,7 +45,7 @@ class RecordsProcessor:
     @classmethod
     def records_by_size_to_by_hash(cls, records: RecordsDictionary):
         res = RecordsDictionary()
-        for key, val in records:
+        for val in records.values():
             for record in val:
                 res.add(record)
         return res
@@ -94,6 +96,3 @@ class RecordsProcessor:
         for record in filter(lambda x: x is not avoid_deletion, records):
             res_logger.info(f"Duplicate file was deleted: {record.file_path}")
             record.delete_record()
-
-
-
