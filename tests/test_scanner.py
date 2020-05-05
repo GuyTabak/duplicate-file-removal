@@ -1,10 +1,10 @@
-from duplicate_file_removal.scanner import Scanner
-
-from tempfile import NamedTemporaryFile
 from os import mkdir, path
 from random import choice
+from tempfile import NamedTemporaryFile
 
 from pytest import fixture
+
+from duplicate_file_removal.scanner import Scanner
 
 
 @fixture(scope='module')

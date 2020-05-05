@@ -1,11 +1,11 @@
-from duplicate_file_removal.processor import RecordsProcessor
-from duplicate_file_removal.file_record import RecordStatus
-
-from tempfile import TemporaryDirectory
 from os import path
+from tempfile import TemporaryDirectory
 
-from tests.utils.util import ignore_exceptions, count
-from pytest import raises
+from pytest import raises, mark
+
+from duplicate_file_removal.file_record import RecordStatus
+from duplicate_file_removal.processor import RecordsProcessor
+from tests.utils.util import ignore_exceptions, count, no_stdout
 
 
 def test_remove_duplicates():
@@ -20,9 +20,10 @@ def test_scanner_results_to_groups(scanner, gen_files_by_specification):
     base_dir = gen_files_by_specification(num_of_dup_files, num_of_unique_files)
     res = scanner.scan(base_dir.name)
     res = RecordsProcessor.scanner_results_to_groups(res)
-    assert len(res) == 6  # 5 occurrences for unique files, and 1 occurrence for the 10 duplicate files
-    assert count(filter(lambda elem: len(elem[1]) == num_of_dup_files, res.items())) == 1
-    assert count((filter(lambda elem: len(elem[1]) == 1, res.items()))) == num_of_unique_files
+    assert len(res) == 1  # occurrences for unique files filtered, and 1 occurrence for the 10 duplicate files
+
+    dup_files_list = next(iter(res.values()))  # get the value of the first element
+    assert len(dup_files_list) == num_of_dup_files
 
 
 def test_remove_duplicate_normalized(binary_data, scanner):
@@ -60,3 +61,20 @@ def test_highest_specificity():
 
     candidates = [("C:\\", object()), ("C:\\specific", object()), ("C:\\specific\\choose_me", chosen_one)]
     assert chosen_one is RecordsProcessor._highest_specificity(candidates)
+
+
+@mark.parametrize("is_simulation,expected", [(False, 2), (True, 3)])
+def test_delete_records(is_simulation, expected, scanner, gen_files_by_specification):
+    # If changed, adjust parametrize value accordingly
+    num_of_dup_files = 2
+    num_of_unique_files = 5
+
+    base_dir = gen_files_by_specification(num_of_dup_files, num_of_unique_files)
+    res = RecordsProcessor.scanner_results_to_groups(scanner.scan(base_dir.name))
+    duplicate_records = next(iter(res.values()))
+
+    res.add(duplicate_records[0])  # Try to 'cheat' the scanner and have two FileRecords to the same physical file
+    with no_stdout():
+        RecordsProcessor.delete_records(duplicate_records[0], duplicate_records, is_simulation)
+
+    assert count(filter(lambda x: x.status == RecordStatus.exists, duplicate_records)) == expected

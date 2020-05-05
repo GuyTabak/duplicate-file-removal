@@ -1,12 +1,12 @@
-from duplicate_file_removal.scanner import Scanner
-
-from tempfile import TemporaryDirectory, NamedTemporaryFile
-from random import randrange
-from typing import Tuple
 from os import urandom
+from random import randrange
+from tempfile import TemporaryDirectory, NamedTemporaryFile
+from typing import Tuple
 from uuid import uuid4
 
 from pytest import fixture
+
+from duplicate_file_removal.scanner import Scanner
 
 
 @fixture(scope="module")
@@ -62,4 +62,5 @@ def gen_files_by_specification() -> callable:
                 f.write(uuid4().bytes)
 
         return root_dir
+
     yield inner_func
