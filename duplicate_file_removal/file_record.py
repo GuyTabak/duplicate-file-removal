@@ -1,8 +1,8 @@
+from enum import Enum
+from hashlib import md5
+from logging import Logger
 from os import path, remove, stat
 from typing import Optional
-from logging import Logger
-from hashlib import md5
-from enum import Enum
 
 
 class RecordStatus(Enum):
@@ -32,7 +32,7 @@ class FileRecord:
         self.status = RecordStatus.deleted
         remove(self.file_path)
         if logger:
-            logger.info(f"File deleted: {self.file_path.encode('utf-8')}")
+            logger.info(f"File deleted: {self.file_path}")
 
     @staticmethod
     def md5_file(file_name):

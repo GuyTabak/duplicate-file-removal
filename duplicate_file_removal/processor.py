@@ -1,18 +1,20 @@
+from os import path
+from typing import List, Tuple
+
 from duplicate_file_removal.file_record import FileRecord, RecordsDictionary
 from duplicate_file_removal.logger import res_logger
-
-from typing import List, Tuple
-from os import path
 
 
 class RecordsProcessor:
     @classmethod
-    def remove_duplicates(cls, records: List[FileRecord], *priority: str) -> None:
+    def remove_duplicates(cls, records: List[FileRecord], *priority: str, simulation=False) -> None:
         """
         :param records: result of the scanner module, duplicate files will be removed and saved according to the
-                        @priority.
+            @priority.
         :param priority: Duplicate FileRecord(@records) will be removed according to this variable, descending order.
-                        Each priority path has to be absolute.
+            Each priority path has to be absolute.
+        :param simulation: If true, instead of deletion, prints to stdout the files which will be deleted and readable
+            manner.
         :return:
         """
         priority = map(lambda x: path.normpath(x), priority)
@@ -21,13 +23,17 @@ class RecordsProcessor:
             raise RuntimeError(f"Following paths are not absolute: {bad_paths}")
 
         for _, val in cls.scanner_results_to_groups(records).items():
-            RecordsProcessor._remove_duplicate_normalized(val, *priority)
+            RecordsProcessor._remove_duplicate_normalized(val, *priority, simulation)
 
     @classmethod
     def scanner_results_to_groups(cls, records: List[FileRecord]) -> RecordsDictionary:
         records_by_size = cls.group_by_size(records)
-        cls.remove_unique(records_by_size)  # Remove any record which is unique
-        return cls.records_by_size_to_by_hash(records_by_size)
+        cls.remove_unique(records_by_size)  # unique by size
+
+        records_by_hash = cls.records_by_size_to_by_hash(records_by_size)
+        cls.remove_unique(records_by_hash)  # unique by hash
+
+        return records_by_hash
 
     @classmethod
     def group_by_size(cls, records: List[FileRecord]) -> RecordsDictionary:
@@ -38,7 +44,7 @@ class RecordsProcessor:
 
     @classmethod
     def remove_unique(cls, records: RecordsDictionary) -> None:
-        for key in records:
+        for key in list(records.keys()):  # creating list is required for deletion during iteration
             if len(records[key]) == 1:
                 records.pop(key)
 
@@ -51,7 +57,7 @@ class RecordsProcessor:
         return res
 
     @classmethod
-    def _remove_duplicate_normalized(cls, records: List[FileRecord], *priority) -> None:
+    def _remove_duplicate_normalized(cls, records: List[FileRecord], *priority, simulation=False) -> None:
         """
         This function is doing some smart decisions of which duplicate to delete:
         If priority_path_a is included in priority_path_b, but priority_path_b is ranked higher,
@@ -73,7 +79,7 @@ class RecordsProcessor:
             record_to_keep = cls._highest_specificity(candidates)
 
         # TODO: add verification that 'record_to_keep' is not corrupted
-        cls.delete_records(record_to_keep, records)
+        cls.delete_records(record_to_keep, records, simulation)
 
     @classmethod
     def _highest_specificity(cls, candidates_desc: List[Tuple[str, FileRecord]]) -> FileRecord:
@@ -92,7 +98,12 @@ class RecordsProcessor:
         return highest_priority[record_index]
 
     @classmethod
-    def delete_records(cls, avoid_deletion: FileRecord, records: List[FileRecord]):
-        for record in filter(lambda x: x is not avoid_deletion, records):
+    def delete_records(cls, avoid_deletion: FileRecord, records: List[FileRecord], simulation=False):
+        if simulation:
+            print(f"Files bellow are duplicate of '{avoid_deletion.file_path}':")
+        for record in filter(lambda x: x.file_path is not avoid_deletion.file_path, records):
             res_logger.info(f"Duplicate file was deleted: {record.file_path}")
-            record.delete_record(res_logger)
+            if not simulation:
+                record.delete_record(res_logger)
+            else:
+                print(f"File {record.file_path} would have been deleted.")

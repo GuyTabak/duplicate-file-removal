@@ -1,8 +1,8 @@
+from os import walk, path
+from typing import List, Tuple
+
 from duplicate_file_removal.file_record import FileRecord
 from duplicate_file_removal.logger import logger
-
-from typing import List, Tuple
-from os import walk, path
 
 
 class Scanner:
