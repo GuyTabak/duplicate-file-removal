@@ -45,7 +45,7 @@ def test_remove_duplicate_normalized(binary_data, scanner):
     assert len(records) == 2  # sanity check
     priority = ["C:\\", temp_dir_2.name]
 
-    RecordsProcessor._remove_duplicate_normalized(records, *priority)
+    RecordsProcessor._remove_duplicate_normalized(records, priority)
 
     assert records[0].status == RecordStatus.deleted
     assert records[1].status == RecordStatus.exists

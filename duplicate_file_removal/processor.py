@@ -7,7 +7,7 @@ from duplicate_file_removal.logger import res_logger
 
 class RecordsProcessor:
     @classmethod
-    def remove_duplicates(cls, records: List[FileRecord], *priority: str, simulation=False) -> None:
+    def remove_duplicates(cls, records: List[FileRecord], priority: List[str], simulation=False) -> None:
         """
         :param records: result of the scanner module, duplicate files will be removed and saved according to the
             @priority.
@@ -23,7 +23,11 @@ class RecordsProcessor:
             raise RuntimeError(f"Following paths are not absolute: {bad_paths}")
 
         for _, val in cls.scanner_results_to_groups(records).items():
-            RecordsProcessor._remove_duplicate_normalized(val, *priority, simulation)
+            RecordsProcessor._remove_duplicate_normalized(val, list(priority), simulation)
+
+    @classmethod
+    def remove_duplicates_simulation(cls, records: List[FileRecord], priority: List[str]) -> None:
+        return cls.remove_duplicates(records, priority, simulation=True)
 
     @classmethod
     def scanner_results_to_groups(cls, records: List[FileRecord]) -> RecordsDictionary:
@@ -57,7 +61,7 @@ class RecordsProcessor:
         return res
 
     @classmethod
-    def _remove_duplicate_normalized(cls, records: List[FileRecord], *priority, simulation=False) -> None:
+    def _remove_duplicate_normalized(cls, records: List[FileRecord], priority: List[str], simulation=False) -> None:
         """
         This function is doing some smart decisions of which duplicate to delete:
         If priority_path_a is included in priority_path_b, but priority_path_b is ranked higher,
@@ -102,7 +106,7 @@ class RecordsProcessor:
         if simulation:
             print(f"Files bellow are duplicate of '{avoid_deletion.file_path}':")
         for record in filter(lambda x: x.file_path is not avoid_deletion.file_path, records):
-            res_logger.info(f"Duplicate file was deleted: {record.file_path}")
+            res_logger.info(f"Duplicate file was deleted: {record.file_path.encode('utf-8')}")
             if not simulation:
                 record.delete_record(res_logger)
             else:

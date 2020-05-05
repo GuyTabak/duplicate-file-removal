@@ -32,7 +32,7 @@ class FileRecord:
         self.status = RecordStatus.deleted
         remove(self.file_path)
         if logger:
-            logger.info(f"File deleted: {self.file_path}")
+            logger.info(f"File deleted: {self.file_path.encode('utf-8')}")
 
     @staticmethod
     def md5_file(file_name):

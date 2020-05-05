@@ -8,7 +8,8 @@ from duplicate_file_removal.logger import logger
 class Scanner:
     RESTRICTED_DIRECTORIES = ["Program Files", "Program Files (x86)", "Windows", "$Recycle.Bin", "AppData",
                               "ProgramData"]
-    RESTRICTED_FILE_EXT = [".sys", ".dll", ".obj"]
+    RESTRICTED_FILE_EXT = [".sys", ".dll", ".obj", ".py", ".go", ".html", ".js", ".s", ".md", ".ts", ".css", ".json",
+                           ".pyc"]
 
     # TODO: handle edge cases:
     #  - permissions( Sys, other users, etc...)
