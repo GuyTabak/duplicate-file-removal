@@ -1,5 +1,6 @@
-from os import walk, path
 from typing import List, Tuple
+from os import walk, path
+from re import search
 
 from duplicate_file_removal.file_record import FileRecord
 from duplicate_file_removal.logger import logger
@@ -16,12 +17,12 @@ class Scanner:
     #  - different OS
     #  - network storage
     @classmethod
-    def scan(cls, root_dir: str) -> List[FileRecord]:
+    def scan(cls, root_dir: str, regex: str = '') -> List[FileRecord]:
         # TODO features:
         #  1. Save state (begin from stopping point).
         #  2. Add API for cloud storage
         # 3.
-        is_valid, invalid_dir_list = cls.is_valid_root_directory_for_scan(root_dir)
+        is_valid, invalid_dir_list = cls._is_valid_root_directory_for_scan(root_dir)
         if not is_valid:
             raise RuntimeError(f"Invalid root directory. Check that the path doesnt contain any of the following:\n"
                                f"{', '.join(invalid_dir_list)}")
@@ -33,7 +34,9 @@ class Scanner:
 
             for file_ in files:
                 file_path = path.join(root, file_)
-                if not cls.is_valid_file_for_scan(file_path):
+                if not cls._is_valid_file_for_scan(file_path):
+                    continue
+                if regex and not search(regex, file_path):  # If regex supplied, but search returns empty, skip file.
                     continue
                 try:
                     res.append(FileRecord(file_path))
@@ -42,7 +45,26 @@ class Scanner:
         return res
 
     @classmethod
-    def is_valid_root_directory_for_scan(cls, dir_: str) -> Tuple[bool, List[str]]:
+    def scan_multiple_paths(cls, *paths: str, regex='') -> List[FileRecord]:
+        res = []
+        for path_ in paths:
+            res += cls.scan(path_, regex=regex)
+
+        return res
+
+    @classmethod
+    def scan_by_file_extension(cls, extension: List[str], *paths) -> List[FileRecord]:
+        regex_str = ""
+        extension = map(lambda x: x[1:] if x.startswith('.') else x, extension)  # To accept both '.ext' and 'ext'
+        extension_template = '\\.{file_ext}+$'
+
+        for ext in extension:
+            regex_str += extension_template.format(file_ext=ext) + '|'
+        regex_str = regex_str[:-1]  # remove last '|'
+        return cls.scan_multiple_paths(*paths, regex=regex_str)
+
+    @classmethod
+    def _is_valid_root_directory_for_scan(cls, dir_: str) -> Tuple[bool, List[str]]:
         """
         :param dir_: dir path
         :return: (True, []) if valid for scan, else (False, [List of bad component in dir_])
@@ -55,7 +77,7 @@ class Scanner:
         return (True, []) if not invalids_dirs else (False, invalids_dirs)
 
     @classmethod
-    def is_valid_file_for_scan(cls, file_path, max_file_size: float = 10):
+    def _is_valid_file_for_scan(cls, file_path, max_file_size: float = 10):
         """
         Determines if a file is valid for scan:
         1. File has to exist.
@@ -77,12 +99,3 @@ class Scanner:
             return False
 
         return True
-
-    @classmethod
-    def scan_multiple_paths(cls, *paths: str) -> List[FileRecord]:
-        res = []
-
-        for path_ in paths:
-            res += cls.scan(path_)
-
-        return res

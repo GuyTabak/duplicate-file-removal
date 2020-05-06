@@ -48,17 +48,19 @@ def random_dir_and_files() -> Tuple[int, str]:
 
 @fixture(scope="module")
 def gen_files_by_specification() -> callable:
-    def inner_func(num_of_same_files: int, num_of_unique_files: int) -> TemporaryDirectory:
+    def inner_func(num_of_same_files: int, num_of_unique_files: int, extension='') -> TemporaryDirectory:
         const_data = uuid4().bytes
         root_dir = TemporaryDirectory()
+        if extension:
+            extension = '.' + extension
 
         # Create duplicate files
         for file in range(num_of_same_files):
-            with NamedTemporaryFile(dir=root_dir.name, delete=False) as f:
+            with NamedTemporaryFile(dir=root_dir.name, delete=False, suffix=extension) as f:
                 f.write(const_data)
         # Create unique files
         for file in range(num_of_unique_files):
-            with NamedTemporaryFile(dir=root_dir.name, delete=False) as f:
+            with NamedTemporaryFile(dir=root_dir.name, delete=False, suffix=extension) as f:
                 f.write(uuid4().bytes)
 
         return root_dir

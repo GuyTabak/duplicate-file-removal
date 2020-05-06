@@ -10,7 +10,7 @@ from tests.utils.util import ignore_exceptions, count, no_stdout
 
 def test_remove_duplicates():
     with raises(RuntimeError):  # make sure paths provided have to be absolute
-        RecordsProcessor.remove_duplicates([], "..\\SomeFolder")
+        RecordsProcessor.remove_duplicates([], ["..\\SomeFolder"])
 
 
 def test_scanner_results_to_groups(scanner, gen_files_by_specification):

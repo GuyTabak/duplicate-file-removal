@@ -37,3 +37,12 @@ def test_restricted_scan(restricted_dir_and_files):
 def test_scan_multiple_paths(random_dir_and_files, scanner):
     num_of_files, dir_ = random_dir_and_files
     assert num_of_files * 2 == len(scanner.scan_multiple_paths(dir_, dir_))
+
+
+def test_scan_by_file_extension(gen_files_by_specification, scanner):
+    num_of_same_files, num_of_unique_files, ext = 5, 5, 'unique'
+    root_dir_1 = gen_files_by_specification(num_of_same_files, num_of_unique_files, ext)
+    root_dir_2 = gen_files_by_specification(num_of_same_files, num_of_unique_files, ext + '2')
+    assert len(scanner.scan_by_file_extension([ext], root_dir_1.name, root_dir_2.name)) == 10
+    assert len(scanner.scan_by_file_extension([ext, ext+'2'], root_dir_1.name, root_dir_2.name)) == 20
+
