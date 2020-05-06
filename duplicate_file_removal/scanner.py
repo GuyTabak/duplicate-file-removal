@@ -1,6 +1,6 @@
-from typing import List, Tuple
 from os import walk, path
 from re import search
+from typing import List, Tuple
 
 from duplicate_file_removal.file_record import FileRecord
 from duplicate_file_removal.logger import logger

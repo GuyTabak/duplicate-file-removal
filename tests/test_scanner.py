@@ -44,5 +44,4 @@ def test_scan_by_file_extension(gen_files_by_specification, scanner):
     root_dir_1 = gen_files_by_specification(num_of_same_files, num_of_unique_files, ext)
     root_dir_2 = gen_files_by_specification(num_of_same_files, num_of_unique_files, ext + '2')
     assert len(scanner.scan_by_file_extension([ext], root_dir_1.name, root_dir_2.name)) == 10
-    assert len(scanner.scan_by_file_extension([ext, ext+'2'], root_dir_1.name, root_dir_2.name)) == 20
-
+    assert len(scanner.scan_by_file_extension([ext, ext + '2'], root_dir_1.name, root_dir_2.name)) == 20
