@@ -1,4 +1,7 @@
-from typing import List, Tuple
+from os import remove
+
+from duplicate_file_removal import PROJECT_NAME
+from typing import Tuple, Optional
 from duplicate_file_removal.logger import logger
 from sqlite3 import connect, Connection, Error
 from collections import namedtuple
@@ -18,16 +21,23 @@ ForeignKey = namedtuple('ForeignKey', 'source_key dst_table foreign_key')
 class BaseModel:
     columns: Tuple[Tuple[str, str]] = None
     primary_keys: Tuple[str] = None
-    foreign_keys: List[ForeignKey] = None
+    foreign_keys: Tuple[ForeignKey] = None
+
+    DB_PATH = f"%AppData%\\{PROJECT_NAME}\\db\\main_db.sqlite3"  # TODO: Check compatibility with unix
+
+    def __init__(self, db_path: Optional[str] = None):
+        self.DB_PATH = db_path if db_path else self.__class__.DB_PATH
+        self.connection = self.connect(self.DB_PATH)
+        self.create_table(self.connection)
 
     @classmethod
     def connect(cls, path: str) -> Connection:
-        conn = None
+        con = None
         try:
-            conn = connect(path)
+            con = connect(path)
         except Error as e:
             logger.error(f"Error while connecting to db '{path}':\n{e}")
-        return conn
+        return con
 
     @classmethod
     def execute_query(cls, connection: Connection, query: str) -> None:
@@ -69,9 +79,14 @@ class BaseModel:
 
     @classmethod
     def generate_foreign_keys(cls) -> str:
-        res = ''
+        res = ""
         template = "FOREIGN KEY ({}) REFERENCES {} ({}),"
         for foreign_key in cls.foreign_keys:
             res += template.format(foreign_key.source_key, foreign_key.dst_table, foreign_key.foreign_key)
 
         return res
+
+    @classmethod
+    def drop_db(cls, db_path=None):
+        db = db_path if db_path else cls.DB_PATH
+        remove(db)
