@@ -3,7 +3,7 @@ from os import remove
 from duplicate_file_removal import PROJECT_NAME
 from typing import Tuple, Optional
 from duplicate_file_removal.logger import logger
-from sqlite3 import connect, Connection, Error
+from sqlite3 import connect, Connection, Error, Cursor
 from collections import namedtuple
 
 
@@ -22,6 +22,7 @@ class BaseModel:
     columns: Tuple[Tuple[str, str]] = None
     primary_keys: Tuple[str] = None
     foreign_keys: Tuple[ForeignKey] = None
+    _query_separator = ","
 
     DB_PATH = f"%AppData%\\{PROJECT_NAME}\\db\\main_db.sqlite3"  # TODO: Check compatibility with unix
 
@@ -40,11 +41,12 @@ class BaseModel:
         return con
 
     @classmethod
-    def execute_query(cls, connection: Connection, query: str) -> None:
+    def execute_query(cls, connection: Connection, query: str) -> Cursor:
         cursor = connection.cursor()
         try:
             cursor.execute(query)
             connection.commit()
+            return cursor
         except Error as e:
             logger.error(f"Error while executing query '{query}':\n{e}")
 
@@ -54,35 +56,40 @@ class BaseModel:
 
     @classmethod
     def create_table(cls, conn: Connection):
-        table_creation_query = f"CREATE TABLE {cls.table_name()}" \
+        table_creation_query = f"CREATE TABLE {cls.table_name()} " \
                                f"(" \
                                f"{cls.generate_columns()}" \
                                f"{cls.generate_primary_keys()}" \
                                f"{cls.generate_foreign_keys()}" \
                                f");"
+
         cursor = conn.cursor()
         cursor.execute(table_creation_query)
         conn.commit()
 
     @classmethod
     def generate_columns(cls) -> str:
-        res = ''
-        template = "{} {},"
-        for column_name, column_type in cls.columns:
-            res += template.format(column_name, column_type)
-
-        return res
+        template = "{} {}"
+        columns = [template.format(column_name, column_type) for column_name, column_type in cls.columns]
+        return f"{cls._query_separator} ".join(columns)
 
     @classmethod
     def generate_primary_keys(cls):
-        return f"PRIMARY KEY ({tuple(cls.primary_keys)}),"
+        if not cls.primary_keys:
+            return ""
+        return "{} PRIMARY KEY ({})".format(cls._query_separator, cls._query_separator.join(cls.primary_keys))
 
     @classmethod
     def generate_foreign_keys(cls) -> str:
         res = ""
-        template = "FOREIGN KEY ({}) REFERENCES {} ({}),"
+
+        if not cls.foreign_keys:
+            return res
+
+        template = "{}FOREIGN KEY ({}) REFERENCES {} ({}) "
         for foreign_key in cls.foreign_keys:
-            res += template.format(foreign_key.source_key, foreign_key.dst_table, foreign_key.foreign_key)
+            res += template.format(cls._query_separator, foreign_key.source_key,
+                                   foreign_key.dst_table, foreign_key.foreign_key)
 
         return res
 
