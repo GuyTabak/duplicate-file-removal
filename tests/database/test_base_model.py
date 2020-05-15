@@ -1,16 +1,11 @@
 from itertools import zip_longest
-from os import path
 from os.path import exists
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryFile
 
 from pytest import fixture
 
 from duplicate_file_removal.database.base_model import BaseModel, SQLiteTypes
 
-
-# NOTE: This test module is building the DB on the go, and preforming operations based on test order.
-# 1. DB state should remain the same before and after each individual test with the exception of
-#   DB 'structural' operations such as create, drop, etc...
 
 class MockDBModel(BaseModel):
     columns = (
@@ -26,10 +21,8 @@ class MockDBModel(BaseModel):
 
 @fixture(scope='module')
 def db_path():
-    d = TemporaryDirectory()
-    path_ = path.join(d.name, "test_db.sqlite3")
-    yield path_
-    cleanup(path_)
+    f = TemporaryFile(delete=False)
+    yield f.name
 
 
 # noinspection PyBroadException
@@ -42,7 +35,7 @@ def cleanup(db_path):
 
 @fixture(scope='module')
 def db_connection(db_path):
-    return BaseModel.connect(db_path)
+    yield BaseModel.connect(db_path)
 
 
 def test_connect(db_path):
@@ -63,7 +56,6 @@ def test_create_table(db_connection):
     cursor_type_index = 2
     name_index = 0
     type_index = 1
-    # TODO: Check the python-sql lib, it might convert 0 to NULL upon query.
     for cursor_data, mock_data in zip_longest(columns, MockDBModel.columns):
         assert cursor_data[cursor_name_index] == mock_data[name_index]
         if not mock_data[type_index] == "NULL":
