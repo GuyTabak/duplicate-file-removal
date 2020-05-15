@@ -19,7 +19,7 @@ class FileRecord:
         _, self.ext = path.splitext(path_)
         self.file_path: str = path_
         self._hash_cache: Optional[str] = None
-        self.size: int = stat(self.file_path).st_size  # size in bytes  # TODO: check performance
+        self.size: int = stat(self.file_path).st_size  # size in bytes
 
     @property
     def hash(self):

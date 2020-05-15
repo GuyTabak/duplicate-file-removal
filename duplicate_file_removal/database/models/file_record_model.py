@@ -1,4 +1,5 @@
 from duplicate_file_removal.database.base_model import BaseModel, SQLiteTypes, ForeignKey
+from duplicate_file_removal.database.models.scan_model import ScanModel
 
 
 class FileRecordModel(BaseModel):
@@ -12,5 +13,11 @@ class FileRecordModel(BaseModel):
         ('scan_id', SQLiteTypes.INTEGER)
     )
 
-    primary_keys = ('id',)
-    foreign_keys = (ForeignKey('scan_id', 'Scan', 'id'),)
+    primary_keys = ('id', 'scan_id')
+    # ('ForeignKey', 'source_key dst_table foreign_key')
+    foreign_keys = (ForeignKey('scan_id', ScanModel.table_name(), 'id'),)
+
+    # TODO: Complete and test
+    @classmethod
+    def save(cls, file, scan_id):
+        pass

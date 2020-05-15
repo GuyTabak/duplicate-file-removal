@@ -67,3 +67,8 @@ def test_create_table(db_connection):
 def test_generate_columns():
     for t_1, t_2 in zip_longest(MockDBModel.columns, MockDBModel.generate_columns().split(", ")):
         assert f"{t_1[0]} {t_1[1]}" == t_2
+
+
+def test_get_model_column_names():
+    for column_name, _ in MockDBModel.columns:
+        assert column_name in MockDBModel.get_model_column_names()

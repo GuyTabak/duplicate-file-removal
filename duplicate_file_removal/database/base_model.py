@@ -1,7 +1,7 @@
 from collections import namedtuple
 from os import remove, path
 from sqlite3 import connect, Connection, Error, Cursor
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 from duplicate_file_removal import PROJECT_NAME
 from duplicate_file_removal.logger import logger
@@ -24,22 +24,33 @@ class BaseModel:
     foreign_keys: Tuple[ForeignKey] = None
     _query_separator = ","
 
+    _connection: Optional[Connection] = None
+
     # Won't work for unix based systems (%AppData%)
-    DB_PATH = f"%AppData%{path.sep}{PROJECT_NAME}{path.sep}db{path.sep}main_db.sqlite3"
+    DB_PATH = path.expandvars(f"%AppData%{path.sep}{PROJECT_NAME}{path.sep}db{path.sep}main_db.sqlite3")
 
     def __init__(self, db_path: Optional[str] = None):
         self.DB_PATH = db_path if db_path else self.__class__.DB_PATH
         self.connection = self.connect(self.DB_PATH)
         self.create_table(self.connection)
 
+    # TODO: No boeno with multiple db files
     @classmethod
-    def connect(cls, path_: str) -> Connection:
-        con = None
+    def connect(cls, path_: Optional[str] = '') -> Connection:
+        if cls._connection:
+            return cls._connection
+
+        if not path_:
+            path_ = cls.DB_PATH
         try:
-            con = connect(path_)
+            cls._connection = connect(path_)
         except Error as e:
             logger.error(f"Error while connecting to db '{path_}':\n{e}")
-        return con
+        return cls._connection
+
+    @classmethod
+    def query(cls, query: str) -> Cursor:
+        return cls.execute_query(cls.connect(), query)
 
     @classmethod
     def execute_query(cls, connection: Connection, query: str) -> Cursor:
@@ -98,3 +109,11 @@ class BaseModel:
     def drop_db(cls, db_path=None):
         db = db_path if db_path else cls.DB_PATH
         remove(db)
+
+    @classmethod
+    def get_model_column_names(cls) -> List[str]:
+        return [column_name for column_name, column_type in cls.columns]
+
+    @classmethod
+    def insert_query_with_values(cls):
+        raise NotImplementedError()  # TODO
