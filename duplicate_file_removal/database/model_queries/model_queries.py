@@ -1,9 +1,6 @@
-from collections import namedtuple
 from typing import Type
 
 from duplicate_file_removal.database.models.base_model import BaseModel
-
-Query = namedtuple('Query', 'query params')
 
 
 class ModelQueries:
@@ -47,3 +44,7 @@ class ModelQueries:
                                    foreign_key.dst_table, foreign_key.foreign_key)
 
         return res
+
+    @staticmethod
+    def table_exists(db_model: Type[BaseModel]):
+        return f"SELECT name FROM sqlite_master WHERE type='table' AND name='{db_model.table_name()}';"

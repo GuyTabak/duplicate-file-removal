@@ -1,6 +1,7 @@
 from enum import Enum
 
-from duplicate_file_removal.database.models.base_model import BaseModel, SQLiteTypes
+from duplicate_file_removal.database.models.base_model import BaseModel
+from duplicate_file_removal.database.types import SQLiteTypes
 
 
 class ScanStatus(Enum):
