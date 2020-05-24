@@ -1,5 +1,6 @@
-from duplicate_file_removal.database.models.base_model import BaseModel, SQLiteTypes, ForeignKey
+from duplicate_file_removal.database.models.base_model import BaseModel, ForeignKey
 from duplicate_file_removal.database.models.scan_model import ScanModel
+from duplicate_file_removal.database.types import SQLiteTypes
 
 
 class FileRecordModel(BaseModel):

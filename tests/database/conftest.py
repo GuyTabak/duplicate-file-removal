@@ -2,7 +2,9 @@ from tempfile import TemporaryFile
 
 from pytest import fixture
 
-from duplicate_file_removal.database.models.base_model import BaseModel, SQLiteTypes
+from duplicate_file_removal.database.db_manager import DBManager
+from duplicate_file_removal.database.models.base_model import BaseModel
+from duplicate_file_removal.database.types import SQLiteTypes
 
 
 @fixture(scope="module")
@@ -24,8 +26,10 @@ class MockDBModel(BaseModel):
 
 
 @fixture(scope="module")
-def mock_db_model(db_path):
-    model = MockDBModel
-    model.DEFAULT_DB_PATH = db_path
-    MockDBModel.create_table()
-    return model
+def db_manager(db_path) -> DBManager:
+    yield DBManager(db_path)
+
+
+@fixture(scope="module")
+def mock_db_model():
+    return MockDBModel
