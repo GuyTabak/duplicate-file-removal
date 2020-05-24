@@ -1,41 +1,8 @@
 from itertools import zip_longest
 from os.path import exists
-from tempfile import TemporaryFile
 
-from pytest import fixture
-
-from duplicate_file_removal.database.base_model import BaseModel, SQLiteTypes
-
-
-class MockDBModel(BaseModel):
-    columns = (
-        ('column_1', SQLiteTypes.INTEGER),
-        ('column_2', SQLiteTypes.TEXT),
-        ('column_3', SQLiteTypes.NULL),
-        ('column_4', SQLiteTypes.BLOB),
-        ('column_5', SQLiteTypes.REAL),
-    )
-
-    primary_keys = ('column_1', 'column_5')
-
-
-@fixture(scope='module')
-def db_path():
-    f = TemporaryFile(delete=False)
-    yield f.name
-
-
-# noinspection PyBroadException
-def cleanup(db_path):
-    try:
-        MockDBModel.drop_db(db_path)
-    except:
-        pass
-
-
-@fixture(scope='module')
-def db_connection(db_path):
-    yield BaseModel.connect(db_path)
+from duplicate_file_removal.database.models.base_model import BaseModel
+from tests.database.conftest import MockDBModel
 
 
 def test_connect(db_path):
