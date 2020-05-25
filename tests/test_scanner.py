@@ -1,12 +1,12 @@
-from duplicate_file_removal.database.db_manager import DBManager
-from duplicate_file_removal.database.model_cursor import execute
-from duplicate_file_removal.database.models.file_record_model import FileRecordModel
 from os import mkdir, path
 from random import choice
 from tempfile import NamedTemporaryFile
 
 from pytest import fixture
 
+from duplicate_file_removal.database.db_manager import DBManager
+from duplicate_file_removal.database.model_cursor import execute
+from duplicate_file_removal.database.models.file_record_model import FileRecordModel
 from duplicate_file_removal.database.models.scan_model import ScanModel
 from duplicate_file_removal.scanner import Scanner
 
@@ -68,5 +68,3 @@ def test_scan_by_file_extension(gen_files_by_specification, scanner):
     root_dir_2 = gen_files_by_specification(num_of_same_files, num_of_unique_files, ext + '2')
     assert len(scanner.scan_by_file_extension([ext], root_dir_1.name, root_dir_2.name)) == 10
     assert len(scanner.scan_by_file_extension([ext, ext + '2'], root_dir_1.name, root_dir_2.name)) == 20
-
-

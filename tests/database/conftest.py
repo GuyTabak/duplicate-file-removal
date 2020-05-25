@@ -1,12 +1,7 @@
-from tempfile import TemporaryFile
-
 from pytest import fixture
 
-from duplicate_file_removal.database.db_manager import DBManager
 from duplicate_file_removal.database.models.base_model import BaseModel
 from duplicate_file_removal.database.types import SQLiteTypes
-
-
 
 
 class MockDBModel(BaseModel):
@@ -19,9 +14,6 @@ class MockDBModel(BaseModel):
     )
 
     primary_keys = ('column_1', 'column_5')
-
-
-
 
 
 @fixture(scope="module")

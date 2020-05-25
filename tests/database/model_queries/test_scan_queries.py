@@ -1,7 +1,8 @@
+from datetime import datetime
+
+from duplicate_file_removal.database.model_cursor import execute
 from duplicate_file_removal.database.model_queries.scan_queries import insert_scan_start
 from duplicate_file_removal.database.models.scan_model import ScanModel
-from duplicate_file_removal.database.model_cursor import execute
-from datetime import datetime
 
 
 def test_insert_scan_start(db_manager):

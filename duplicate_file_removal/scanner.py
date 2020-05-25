@@ -8,8 +8,6 @@ from duplicate_file_removal.database.model_cursor import execute
 from duplicate_file_removal.database.model_queries.file_record_query import save_file_record_to_db
 from duplicate_file_removal.database.model_queries.scan_queries import insert_scan_start, \
     update_scan_completion_time_query
-from duplicate_file_removal.database.models.file_record_model import FileRecordModel
-from duplicate_file_removal.database.models.scan_model import ScanModel
 from duplicate_file_removal.file_record import FileRecord
 from duplicate_file_removal.logger import logger
 

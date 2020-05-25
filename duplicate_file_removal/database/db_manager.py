@@ -1,5 +1,7 @@
+import pathlib
 from os import remove
 from os.path import abspath, sep, expandvars
+from os.path import exists, dirname
 from sqlite3 import Connection, connect, PARSE_DECLTYPES, PARSE_COLNAMES
 from typing import Optional, Type, List
 
@@ -9,8 +11,6 @@ from duplicate_file_removal import PROJECT_NAME
 from duplicate_file_removal.database.model_cursor import execute
 from duplicate_file_removal.database.model_queries.model_queries import ModelQueries
 from duplicate_file_removal.database.models.base_model import BaseModel
-from os.path import exists, dirname
-import pathlib
 
 
 class DBManager:
