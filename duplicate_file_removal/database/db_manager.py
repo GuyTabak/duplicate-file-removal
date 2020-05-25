@@ -9,6 +9,8 @@ from duplicate_file_removal import PROJECT_NAME
 from duplicate_file_removal.database.model_cursor import execute
 from duplicate_file_removal.database.model_queries.model_queries import ModelQueries
 from duplicate_file_removal.database.models.base_model import BaseModel
+from os.path import exists, dirname
+import pathlib
 
 
 class DBManager:
@@ -18,6 +20,9 @@ class DBManager:
 
     def __init__(self, path_: Optional[str] = ''):
         self.db_path = abspath(path_) if path_ else self._DEFAULT_DB_PATH
+        if not exists(self.db_path):
+            pathlib.Path(dirname(self.db_path)).mkdir(parents=True, exist_ok=True)
+            open(self.db_path, "w")
 
     @property
     def connection(self) -> Connection:
@@ -33,7 +38,6 @@ class DBManager:
         if path_ in self.connections:
             return self.connections[path_]
 
-        # TODO: PARSE_DECLTYPES | PARSE_COLNAMES
         return connect(path_, detect_types=PARSE_DECLTYPES | PARSE_COLNAMES)
 
     def create_table(self, db_model: Type[BaseModel]) -> None:
@@ -50,7 +54,7 @@ class DBManager:
         if not val:
             self.create_table(db_model)
 
-    def last_insert_rowid(self) -> str:
+    def last_insert_rowid(self) -> int:
         """ returns the ROWID of the last row insert from the database connection"""
         data = execute(self.connection, ModelQueries.last_insert_rowid()).fetchone()[0]
         return data

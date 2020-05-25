@@ -1,8 +1,13 @@
-from datetime import time
+from datetime import datetime
 from os import walk, path
 from re import search
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
+from duplicate_file_removal.database.db_manager import DBManager
+from duplicate_file_removal.database.model_cursor import execute
+from duplicate_file_removal.database.model_queries.file_record_query import save_file_record_to_db
+from duplicate_file_removal.database.model_queries.scan_queries import insert_scan_start, \
+    update_scan_completion_time_query
 from duplicate_file_removal.database.models.file_record_model import FileRecordModel
 from duplicate_file_removal.database.models.scan_model import ScanModel
 from duplicate_file_removal.file_record import FileRecord
@@ -116,16 +121,19 @@ class Scanner:
         return True
 
     @classmethod
-    def scan_multiple_paths_and_save(cls, *paths: str, regex='') -> int:
-        """
-        Saves scan results to local db for later use, returns scan_id.
-        For more information see Scanner.scan() func.
-        """
-        # TODO: Test
-        scan_start = time()
-        scan_id = ScanModel.create(scan_start)
-        for file in cls.scan_multiple_paths(*paths, regex):
-            FileRecordModel.save(file, scan_id=scan_id)
+    def save_scan_results(cls, file_records: List[FileRecord], scan_id: Optional[int] = None):
+        """ Saves scan results to local db for later use, returns scan_id """
+        manager = DBManager()
+        connection_ = manager.connection
+        if not scan_id:
+            execute(connection_, insert_scan_start(), (datetime.now(),))
+            scan_id = manager.last_insert_rowid()
 
-        scan_end = time()  # ToDo: Update scan record with end time, status?
+        execute(connection_, update_scan_completion_time_query(), (datetime.now(), scan_id), commit=True)
+
+        for file_record in file_records:
+            query, params = save_file_record_to_db(file_record, scan_id)
+            execute(connection_, query, params)
+        connection_.commit()
+
         return scan_id

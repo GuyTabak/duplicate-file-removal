@@ -6,7 +6,6 @@ from duplicate_file_removal.database.types import SQLiteTypes
 class FileRecordModel(BaseModel):
     columns = (
         ('id', SQLiteTypes.INTEGER),
-        ('status', SQLiteTypes.INTEGER),
         ('ext', SQLiteTypes.TEXT),
         ('file_path', SQLiteTypes.TEXT),
         ('hash_value', SQLiteTypes.TEXT),

@@ -7,10 +7,6 @@ from duplicate_file_removal.database.models.base_model import BaseModel
 from duplicate_file_removal.database.types import SQLiteTypes
 
 
-@fixture(scope="module")
-def db_path():
-    f = TemporaryFile(delete=False)
-    yield f.name
 
 
 class MockDBModel(BaseModel):
@@ -25,9 +21,7 @@ class MockDBModel(BaseModel):
     primary_keys = ('column_1', 'column_5')
 
 
-@fixture(scope="module")
-def db_manager(db_path) -> DBManager:
-    yield DBManager(db_path)
+
 
 
 @fixture(scope="module")

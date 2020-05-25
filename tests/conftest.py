@@ -1,11 +1,12 @@
 from os import urandom
 from random import randrange
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from tempfile import TemporaryDirectory, NamedTemporaryFile, TemporaryFile
 from typing import Tuple
 from uuid import uuid4
 
 from pytest import fixture
 
+from duplicate_file_removal.database.db_manager import DBManager
 from duplicate_file_removal.scanner import Scanner
 
 
@@ -33,7 +34,7 @@ def random_dir_and_files() -> Tuple[int, str]:
         cur_root_dir = TemporaryDirectory(dir=cur_root_dir.name)
         holder.append(cur_root_dir)
         for i in range(randrange(1, 5)):
-            with NamedTemporaryFile(dir=cur_root_dir.name, delete=False) as f:
+            with NamedTemporaryFile(dir=cur_root_dir.name, delete=False, suffix=".ext") as f:
                 f.write(uuid4().bytes)
                 holder.append(f)
             files_counter += 1
@@ -66,3 +67,14 @@ def gen_files_by_specification() -> callable:
         return root_dir
 
     yield inner_func
+
+
+@fixture(scope="module")
+def db_path():
+    f = TemporaryFile(delete=False)
+    yield f.name
+
+
+@fixture(scope="module")
+def db_manager(db_path) -> DBManager:
+    yield DBManager(db_path)
