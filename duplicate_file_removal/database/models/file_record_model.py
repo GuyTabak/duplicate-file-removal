@@ -15,10 +15,4 @@ class FileRecordModel(BaseModel):
     )
 
     primary_keys = ('id', 'scan_id')
-    # ('ForeignKey', 'source_key dst_table foreign_key')
     foreign_keys = (ForeignKey('scan_id', ScanModel.table_name(), 'id'),)
-
-    # TODO: Complete and test
-    @classmethod
-    def save(cls, file, scan_id):
-        pass
